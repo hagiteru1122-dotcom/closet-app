@@ -1,0 +1,17 @@
+body { font-family: sans-serif; background: #f9f9f9; padding: 1rem; padding-bottom: 70px; }
+    h1,h2 { text-align:center; }
+    section { display:none; }
+    section.active { display:block; }
+    input, select, textarea, button { width:100%; box-sizing:border-box; padding:0.5rem; margin-top:0.5rem; border:1px solid #ccc; border-radius:6px; }
+    .clothing-list-container { display:flex; overflow-x:auto; gap:1rem; padding-bottom:1rem; }
+    .clothing-item { min-width:200px; flex-shrink:0; background:#fff; padding:1rem; border-radius:8px; border:1px solid #ddd; }
+    .clothing-item h4 { word-break: break-word; margin:0.5rem 0; }
+    .preview-img { width:100%; max-width:100px; height:auto; border-radius:8px; border:1px solid #ccc; }
+    #calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; }
+    .calendar-cell { padding:0.5rem; font-size:0.75rem; line-height:1.2; background:#fff; border:1px solid #ccc; cursor:pointer; border-radius:6px; }
+    .calendar-cell:hover { background-color: #e0f7fa; }
+    .calendar-coord-detail { margin-top:1rem; background:#fff; padding:1rem; border-radius:8px; border:1px solid #ddd; }
+    .filter-bar label { display:block; margin-top:0.5rem; }
+    .bottom-nav { position:fixed; bottom:0; left:0; right:0; height:60px; display:flex; justify-content:space-around; align-items:center; background:#fff; border-top:1px solid #ccc; z-index:999; box-shadow:0 -1px 5px rgba(0,0,0,0.1); }
+    .bottom-nav button { flex:1; background:none; border:none; text-align:center; font-size:0.8rem; color:#444; }
+    .bottom-nav i { font-size:1.2rem; display:block; margin-bottom:0.2rem; }
