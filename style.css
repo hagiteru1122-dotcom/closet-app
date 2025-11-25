@@ -250,3 +250,30 @@ input, select, textarea, button {
   margin-top: 2px;
   width: 100%;
 }
+
+/* --- カレンダーのコーデ表示のアイテム（画像＋名前） --- */
+.calendar-coord-detail .coord-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+}
+
+/* 画像はそのまま使うが右に余白をつけない */
+.calendar-coord-detail .coord-item img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+/* 名前を画像の右に置き、長い場合は右側で折り返し */
+.calendar-coord-detail .coord-item span {
+  flex: 1;
+  white-space: normal;       /* 必ず折り返し可能にする */
+  word-break: break-word;    /* 長い英単語でも折れる */
+  line-height: 1.2;
+  font-size: 14px;
+  font-weight: bold;
+}

@@ -142,7 +142,7 @@ function updateCoordItems(filteredData) {
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.value = item.name;   // ← ID を保存に使用！
+    checkbox.value = item.name;   
     checkbox.className = 'coord-checkbox';
 
     const imgBox = document.createElement('div');
@@ -253,15 +253,15 @@ function showCoordForDate(dateStr){
   const div = document.getElementById('calendar-coord-detail');
   const coords = coordData.filter(c => c.date === dateStr);
 
-  if(coords.length === 0){
+  if (coords.length === 0) {
     div.innerHTML = 'この日に作成したコーデはありません。';
     return;
   }
 
-  div.innerHTML = coords.map(c => {
+  div.innerHTML = coords.map((c, index) => {
     const itemsHTML = c.items.map(name => {
       const item = clothingData.find(i => i.name === name);
-      if(!item) return '';
+      if (!item) return '';
       return `
         <div class="coord-item">
           <img src="${item.image}" alt="${item.name}">
@@ -270,8 +270,42 @@ function showCoordForDate(dateStr){
       `;
     }).join('');
 
-    return `<div class="calendar-coord-detail"><strong>${c.name}</strong>${itemsHTML}</div>`;
+    return `
+      <div class="calendar-coord-detail">
+        <strong>${c.name}</strong>
+
+        ${itemsHTML}
+
+        <button class="coord-delete-btn" data-index="${index}" data-date="${dateStr}">
+          削除
+        </button>
+      </div>
+    `;
   }).join('');
+
+  // --- 削除ボタンの動作 ---
+  document.querySelectorAll('.coord-delete-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const date = e.target.dataset.date;
+      const idx = Number(e.target.dataset.index);
+
+      if (!confirm('このコーデを削除しますか？')) return;
+
+      // 指定日のコーデ一覧から対象を削除
+      let dailyCoords = coordData.filter(c => c.date === date);
+      const target = dailyCoords[idx];
+
+      // 全体データから削除
+      coordData = coordData.filter(c => c !== target);
+
+      // 保存
+      localStorage.setItem('coordData', JSON.stringify(coordData));
+
+      // 再描画
+      showCoordForDate(date);
+      updateCalendar();
+    });
+  });
 }
 
 document.getElementById('prev-month').addEventListener('click', ()=>{
