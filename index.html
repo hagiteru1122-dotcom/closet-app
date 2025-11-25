@@ -7,26 +7,7 @@
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="manifest" href="manifest.json">
-
-  <style>
-    body { font-family: sans-serif; background: #f9f9f9; padding: 1rem; padding-bottom: 70px; }
-    h1,h2 { text-align:center; }
-    section { display:none; }
-    section.active { display:block; }
-    input, select, textarea, button { width:100%; box-sizing:border-box; padding:0.5rem; margin-top:0.5rem; border:1px solid #ccc; border-radius:6px; }
-    .clothing-list-container { display:flex; overflow-x:auto; gap:1rem; padding-bottom:1rem; }
-    .clothing-item { min-width:200px; flex-shrink:0; background:#fff; padding:1rem; border-radius:8px; border:1px solid #ddd; }
-    .clothing-item h4 { word-break: break-word; margin:0.5rem 0; }
-    .preview-img { width:100%; max-width:100px; height:auto; border-radius:8px; border:1px solid #ccc; }
-    #calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; }
-    .calendar-cell { padding:0.5rem; font-size:0.75rem; line-height:1.2; background:#fff; border:1px solid #ccc; cursor:pointer; border-radius:6px; }
-    .calendar-cell:hover { background-color: #e0f7fa; }
-    .calendar-coord-detail { margin-top:1rem; background:#fff; padding:1rem; border-radius:8px; border:1px solid #ddd; }
-    .filter-bar label { display:block; margin-top:0.5rem; }
-    .bottom-nav { position:fixed; bottom:0; left:0; right:0; height:60px; display:flex; justify-content:space-around; align-items:center; background:#fff; border-top:1px solid #ccc; z-index:999; box-shadow:0 -1px 5px rgba(0,0,0,0.1); }
-    .bottom-nav button { flex:1; background:none; border:none; text-align:center; font-size:0.8rem; color:#444; }
-    .bottom-nav i { font-size:1.2rem; display:block; margin-bottom:0.2rem; }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>クローゼット管理（ローカル版）</h1>
@@ -48,42 +29,103 @@
         <option value="小物">小物</option>
       </select>
       <textarea name="memo" rows="2" placeholder="メモ"></textarea>
+      
+      <!-- 季節チェック -->
+      <div>
+        <label><input type="checkbox" name="seasons" value="春">春</label>
+        <label><input type="checkbox" name="seasons" value="夏">夏</label>
+        <label><input type="checkbox" name="seasons" value="秋">秋</label>
+        <label><input type="checkbox" name="seasons" value="冬">冬</label>
+      </div>
+      
       <button type="submit">保存</button>
     </form>
   </section>
 
   <!-- 服の一覧 -->
   <section id="list">
-    <h2>服の一覧</h2>
-    <div class="filter-bar">
-      <label>カテゴリ:
-        <select id="filter-category">
-          <option value="">すべて</option>
-          <option value="トップス">トップス</option>
-          <option value="ボトムス">ボトムス</option>
-          <option value="アウター">アウター</option>
-          <option value="靴">靴</option>
-          <option value="小物">小物</option>
-        </select>
-      </label>
-      <label>色: <input type="text" id="filter-color" placeholder="例: 黒"></label>
-      <label>ブランド: <input type="text" id="filter-brand" placeholder="例: UNIQLO"></label>
-      <button type="button" id="apply-filter-btn">絞り込み</button>
-      <button type="button" id="clear-filter-btn">リセット</button>
+  <h2>服の一覧</h2>
+
+  <!-- ここにフィルターを追加 -->
+  <div id="list-filter">
+    <label>カテゴリ:
+      <select id="filter-category">
+        <option value="">すべて</option>
+        <option value="トップス">トップス</option>
+        <option value="ボトムス">ボトムス</option>
+        <option value="アウター">アウター</option>
+        <option value="靴">靴</option>
+        <option value="小物">小物</option>
+      </select>
+    </label>
+
+    <label>色: <input type="text" id="filter-color" placeholder="例: 黒"></label>
+    <label>ブランド: <input type="text" id="filter-brand" placeholder="例: UNIQLO"></label>
+
+    <div>
+      <label><input type="checkbox" name="filter-season" value="春">春</label>
+      <label><input type="checkbox" name="filter-season" value="夏">夏</label>
+      <label><input type="checkbox" name="filter-season" value="秋">秋</label>
+      <label><input type="checkbox" name="filter-season" value="冬">冬</label>
     </div>
-    <div class="clothing-list-container" id="clothing-list"></div>
-  </section>
+
+    <!-- 新規: お気に入りチェック -->
+    <label><input type="checkbox" id="filter-fav"> お気に入りのみ</label>
+
+    <button type="button" id="list-filter-apply">絞り込み</button>
+    <button type="button" id="list-filter-clear">リセット</button>
+  </div>
+
+  <!-- 服カード表示 -->
+  <div class="clothing-list-container" id="clothing-list"></div>
+</section>
 
   <!-- コーデ作成 -->
   <section id="coord">
-    <h2>コーデ作成</h2>
-    <form id="coord-form">
-      <input type="text" id="coord-name" placeholder="コーデ名" required>
-      <div id="coord-items"></div>
-      <input type="date" id="coord-date" required>
-      <button type="submit">保存</button>
-    </form>
-  </section>
+  <h2>コーデ作成</h2>
+  <form id="coord-form">
+
+    
+
+    <!-- 2. フィルター部分（カテゴリ・色・季節・お気に入り） -->
+    <div id="coord-filter">
+      <select id="coord-filter-category">
+        <option value="">すべてのカテゴリ</option>
+        <option value="トップス">トップス</option>
+        <option value="ボトムス">ボトムス</option>
+        <option value="アウター">アウター</option>
+        <option value="靴">靴</option>
+        <option value="小物">小物</option>
+      </select>
+
+      <input type="text" id="coord-filter-color" placeholder="色で検索">
+
+      <input type="text" id="coord-filter-brand" placeholder="ブランドで検索">
+
+      <label><input type="checkbox" name="coord-filter-season" value="春">春</label>
+      <label><input type="checkbox" name="coord-filter-season" value="夏">夏</label>
+      <label><input type="checkbox" name="coord-filter-season" value="秋">秋</label>
+      <label><input type="checkbox" name="coord-filter-season" value="冬">冬</label>
+
+      <label><input type="checkbox" id="coord-filter-fav"> お気に入りのみ</label>
+
+      <button type="button" id="coord-filter-apply">絞り込み</button>
+      <button type="button" id="coord-filter-clear">リセット</button>
+    </div>
+
+    <!-- 3. 服カード -->
+    <div id="coord-items"></div>
+
+    <!-- 1. コーデ名（必ず一番上） -->
+    <input type="text" id="coord-name" placeholder="コーデ名" required>
+
+    <!-- 4. 日付 -->
+    <input type="date" id="coord-date" required>
+
+    <!-- 5. 保存ボタン -->
+    <button type="submit">保存</button>
+  </form>
+</section>
 
   <!-- カレンダー -->
   <section id="calendar">
@@ -106,13 +148,5 @@
   </nav>
 
   <script src="script.js"></script>
-  <script>
-    // PWA用 Service Worker 登録
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log('Service Worker registered'))
-        .catch(err => console.log('Service Worker registration failed:', err));
-    }
-  </script>
 </body>
 </html>

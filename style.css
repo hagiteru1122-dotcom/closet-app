@@ -1,17 +1,252 @@
-body { font-family: sans-serif; background: #f9f9f9; padding: 1rem; padding-bottom: 70px; }
-    h1,h2 { text-align:center; }
-    section { display:none; }
-    section.active { display:block; }
-    input, select, textarea, button { width:100%; box-sizing:border-box; padding:0.5rem; margin-top:0.5rem; border:1px solid #ccc; border-radius:6px; }
-    .clothing-list-container { display:flex; overflow-x:auto; gap:1rem; padding-bottom:1rem; }
-    .clothing-item { min-width:200px; flex-shrink:0; background:#fff; padding:1rem; border-radius:8px; border:1px solid #ddd; }
-    .clothing-item h4 { word-break: break-word; margin:0.5rem 0; }
-    .preview-img { width:100%; max-width:100px; height:auto; border-radius:8px; border:1px solid #ccc; }
-    #calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; }
-    .calendar-cell { padding:0.5rem; font-size:0.75rem; line-height:1.2; background:#fff; border:1px solid #ccc; cursor:pointer; border-radius:6px; }
-    .calendar-cell:hover { background-color: #e0f7fa; }
-    .calendar-coord-detail { margin-top:1rem; background:#fff; padding:1rem; border-radius:8px; border:1px solid #ddd; }
-    .filter-bar label { display:block; margin-top:0.5rem; }
-    .bottom-nav { position:fixed; bottom:0; left:0; right:0; height:60px; display:flex; justify-content:space-around; align-items:center; background:#fff; border-top:1px solid #ccc; z-index:999; box-shadow:0 -1px 5px rgba(0,0,0,0.1); }
-    .bottom-nav button { flex:1; background:none; border:none; text-align:center; font-size:0.8rem; color:#444; }
-    .bottom-nav i { font-size:1.2rem; display:block; margin-bottom:0.2rem; }
+/* --- 全体 --- */
+body {
+  font-family: sans-serif;
+  background: #f9f9f9;
+  padding: 1rem;
+  padding-bottom: 70px;
+  margin: 0;
+}
+
+h1, h2 {
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+section { display: none; }
+section.active { display: block; }
+
+input, select, textarea, button {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* --- 服一覧 --- */
+.clothing-list-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding-bottom: 1rem;
+}
+
+.clothing-item {
+  min-width: 200px;
+  flex-shrink: 0;
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.clothing-item h4 { word-break: break-word; margin: 0.5rem 0; }
+.clothing-item p { margin: 0.3rem 0; }
+
+.clothing-item img {
+  width: 100%;
+  max-width: 100px;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* コーデ作成コンテナ */
+#coord-items {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+}
+
+/* 1つのアイテムカード */
+.coord-card {
+  width: 130px; /* 少し幅広め */
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* チェックボックス */
+.coord-checkbox {
+  width: 20px;
+  height: 20px;
+  margin: 0 auto;
+}
+
+/* 画像枠（大きめに変更） */
+.coord-img-box {
+  width: 100%;
+  height: 130px; /* 画像を少し大きめに */
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f5f5f5;
+}
+
+.coord-img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* アイテム名 */
+.coord-name {
+  font-size: 12px;
+  font-weight: bold;
+  margin: 2px 0 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ブランド名 */
+.coord-brand {
+  font-size: 11px;
+  color: #666;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* --- カレンダー --- */
+#calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+
+.calendar-cell {
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  background: #fff;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.calendar-cell:hover { background-color: #e0f7fa; }
+
+.calendar-coord-detail {
+  margin-top: 1rem;
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.calendar-coord-detail img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  margin-right: 0.3rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+/* カレンダー内のコーデ詳細の画像だけ大きく表示 */
+#calendar-coord-detail img {
+  width: 150px;   /* 大きめ */
+  height: 150px;  /* 大きめ */
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+#calendar-coord-detail span {
+  font-size: 16px;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}
+
+/* --- フィルター --- */
+.filter-bar label { display: block; margin-top: 0.5rem; }
+.filter-bar div { margin-top: 0.5rem; }
+
+/* --- 下部ナビ --- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: #fff;
+  border-top: 1px solid #ccc;
+  z-index: 999;
+  box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
+}
+
+.bottom-nav button {
+  flex: 1;
+  background: none;
+  border: none;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #444;
+}
+
+.bottom-nav i {
+  font-size: 1.2rem;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.clothing-list-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding-bottom: 1rem;
+}
+
+.clothing-item {
+  flex: 0 0 150px;
+  background: #fff;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.clothing-item img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+.clothing-item h4, .clothing-item p {
+  text-align: center;
+  font-size: 12px;
+  margin: 2px 0;
+  line-height: 1.2;
+}
+
+.favorite-btn, .delete-btn {
+  font-size: 12px;
+  margin-top: 2px;
+  width: 100%;
+}
