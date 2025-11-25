@@ -1,5 +1,7 @@
 // --- データ初期化 ---
-let clothingData = JSON.parse(localStorage.getItem('clothingData') || '[]');
+let clothingData = JSON.parse(localStorage.getItem('clothingData') || '[]')
+  .map(item => ({ ...item, wearCount: item.wearCount ?? 0 })); // ★ 着用回数対応
+
 let coordData = JSON.parse(localStorage.getItem('coordData') || '[]');
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth();
@@ -11,10 +13,40 @@ function switchView(id){
   if(id==='coord') updateCoordItems();
   if(id==='calendar') updateCalendar();
   if(id==='list') renderClothingList();
+  if(id==='stats') updateStats(); 
 }
 document.querySelectorAll('.bottom-nav button').forEach(btn=>{
   btn.addEventListener('click', ()=> switchView(btn.dataset.target));
 });
+
+// --- 統計タブ表示 ---
+function updateStats() {
+  const container = document.getElementById('stats-content');
+  if (!container) return;
+
+  // 総着用回数
+  const totalWear = clothingData.reduce((sum, item) => sum + (item.wearCount || 0), 0);
+
+  // 着用回数が多い順にTop5
+  const topItems = [...clothingData]
+    .sort((a, b) => (b.wearCount || 0) - (a.wearCount || 0))
+    .slice(0, 5);
+
+  container.innerHTML = `
+    <p>総着用回数: ${totalWear}回</p>
+    <h4>よく着たアイテム Top5</h4>
+    <ol>
+      ${topItems.map(item => `<li>${item.name} (${item.wearCount}回)</li>`).join('')}
+    </ol>
+  `;
+}
+
+// --- タブ切替に統計呼び出し追加 ---
+const originalSwitchView = switchView;
+switchView = function(id) {
+  originalSwitchView(id);
+  if (id === 'stats') updateStats();
+};
 
 // --- 画像プレビュー ---
 const imageInput = document.getElementById('image-input');
@@ -48,7 +80,6 @@ document.getElementById('clothing-form').addEventListener('submit', e=>{
   e.preventDefault();
   const f = e.target;
   const seasons = Array.from(f.querySelectorAll('input[name="seasons"]:checked')).map(i=>i.value);
-
   const newItem = {
     name: f.name.value,
     brand: f.brand.value,
@@ -57,9 +88,9 @@ document.getElementById('clothing-form').addEventListener('submit', e=>{
     memo: f.memo.value,
     image: imagePreview.src || '',
     seasons: seasons,
-    favorite: false
+    favorite: false,
+    wearCount: 0 // ★ 着用回数対応
   };
-
   clothingData.push(newItem);
   localStorage.setItem('clothingData', JSON.stringify(clothingData));
   f.reset();
@@ -82,6 +113,7 @@ function renderClothingList(data=clothingData){
       <p>${item.brand} / ${item.color} / ${item.category}</p>
       <p>${item.memo}</p>
       <p>${seasonsText}</p>
+      <p>着用回数: ${item.wearCount}回</p> <!-- ★ 着用回数表示 -->
       <button class="favorite-btn">${item.favorite ? '★' : '☆'} お気に入り</button>
       <button class="delete-btn">削除</button>
     `;
@@ -94,7 +126,7 @@ function renderClothingList(data=clothingData){
 
     div.querySelector('.delete-btn').addEventListener('click', ()=>{
       if(confirm(`${item.name} を削除してもよろしいですか？`)){
-        clothingData = clothingData.filter(i => i.id !== item.id);
+        clothingData = clothingData.filter(i => i !== item);
         localStorage.setItem('clothingData', JSON.stringify(clothingData));
         renderClothingList();
       }
@@ -131,7 +163,7 @@ document.getElementById('list-filter-clear').addEventListener('click', ()=>{
   renderClothingList();
 });
 
-// --- コーデ作成カード ---
+// --- コーデ作成カード生成（お気に入り対応） ---
 function updateCoordItems(filteredData) {
   const container = document.getElementById('coord-items');
   container.innerHTML = '';
@@ -140,11 +172,13 @@ function updateCoordItems(filteredData) {
     const wrapper = document.createElement('label');
     wrapper.className = 'coord-card';
 
+    // チェックボックス
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.value = item.name;   
+    checkbox.value = item.name;
     checkbox.className = 'coord-checkbox';
 
+    // 画像
     const imgBox = document.createElement('div');
     imgBox.className = 'coord-img-box';
     const img = document.createElement('img');
@@ -152,14 +186,17 @@ function updateCoordItems(filteredData) {
     img.alt = item.name;
     imgBox.appendChild(img);
 
+    // 名称
     const name = document.createElement('p');
     name.className = 'coord-name';
     name.textContent = item.name;
 
+    // ブランド
     const brand = document.createElement('p');
     brand.className = 'coord-brand';
     brand.textContent = item.brand;
 
+    // お気に入りボタン
     const favBtn = document.createElement('button');
     favBtn.type = 'button';
     favBtn.className = 'coord-fav-btn';
@@ -181,7 +218,7 @@ function updateCoordItems(filteredData) {
   });
 }
 
-// --- コーデフィルター ---
+// --- フィルター機能 ---
 document.getElementById('coord-filter-apply').addEventListener('click', () => {
   const cat = document.getElementById('coord-filter-category').value;
   const color = document.getElementById('coord-filter-color').value.toLowerCase();
@@ -213,16 +250,30 @@ document.getElementById('coord-filter-clear').addEventListener('click', () => {
 // --- コーデ保存 ---
 document.getElementById('coord-form').addEventListener('submit', e => {
   e.preventDefault();
-  const selectedItems = Array.from(document.querySelectorAll('#coord-items input[type="checkbox"]:checked')).map(cb=>cb.value);
-  if(selectedItems.length===0){ alert('少なくとも1つアイテムを選んでください'); return; }
+  const selectedItems = Array.from(document.querySelectorAll('#coord-items input[type="checkbox"]:checked'))
+                             .map(cb => cb.value);
+
+  if(selectedItems.length === 0){
+    alert('少なくとも1つアイテムを選んでください');
+    return;
+  }
+
+  // ★ 選んだアイテムの着用回数を +1
+  selectedItems.forEach(name => {
+    const item = clothingData.find(i => i.name === name);
+    if(item) item.wearCount = (item.wearCount || 0) + 1;
+  });
+  localStorage.setItem('clothingData', JSON.stringify(clothingData));
 
   const newCoord = {
     name: document.getElementById('coord-name').value,
     date: document.getElementById('coord-date').value,
     items: selectedItems
   };
+
   coordData.push(newCoord);
   localStorage.setItem('coordData', JSON.stringify(coordData));
+
   alert('コーデを保存しました');
   e.target.reset();
   updateCoordItems();
@@ -283,29 +334,41 @@ function showCoordForDate(dateStr){
     `;
   }).join('');
 
-  // --- 削除ボタンの動作 ---
-  document.querySelectorAll('.coord-delete-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      const date = e.target.dataset.date;
-      const idx = Number(e.target.dataset.index);
+  // --- 削除ボタンの動作（カレンダー） ---
+document.querySelectorAll('.coord-delete-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const date = e.target.dataset.date;
+    const idx = Number(e.target.dataset.index);
 
-      if (!confirm('このコーデを削除しますか？')) return;
+    if (!confirm('このコーデを削除しますか？')) return;
 
-      // 指定日のコーデ一覧から対象を削除
-      let dailyCoords = coordData.filter(c => c.date === date);
-      const target = dailyCoords[idx];
+    // 指定日のコーデ一覧から対象を取得
+    let dailyCoords = coordData.filter(c => c.date === date);
+    const target = dailyCoords[idx];
 
-      // 全体データから削除
-      coordData = coordData.filter(c => c !== target);
-
-      // 保存
-      localStorage.setItem('coordData', JSON.stringify(coordData));
-
-      // 再描画
-      showCoordForDate(date);
-      updateCalendar();
+    // 削除対象のコーデに含まれるアイテムの着用回数を -1
+    target.items.forEach(name => {
+      const item = clothingData.find(i => i.name === name);
+      if(item && item.wearCount > 0) item.wearCount -= 1;
     });
+
+    // 全体データから削除
+    coordData = coordData.filter(c => c !== target);
+
+    // 保存
+    localStorage.setItem('coordData', JSON.stringify(coordData));
+    localStorage.setItem('clothingData', JSON.stringify(clothingData));
+
+    // 再描画
+    showCoordForDate(date);
+    updateCalendar();
+    
+    // 統計タブがアクティブなら更新
+    if(document.getElementById('stats').classList.contains('active')){
+      updateStats();
+    }
   });
+});
 }
 
 document.getElementById('prev-month').addEventListener('click', ()=>{
