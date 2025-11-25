@@ -48,6 +48,7 @@ document.getElementById('clothing-form').addEventListener('submit', e=>{
   e.preventDefault();
   const f = e.target;
   const seasons = Array.from(f.querySelectorAll('input[name="seasons"]:checked')).map(i=>i.value);
+
   const newItem = {
     name: f.name.value,
     brand: f.brand.value,
@@ -58,6 +59,7 @@ document.getElementById('clothing-form').addEventListener('submit', e=>{
     seasons: seasons,
     favorite: false
   };
+
   clothingData.push(newItem);
   localStorage.setItem('clothingData', JSON.stringify(clothingData));
   f.reset();
@@ -92,7 +94,7 @@ function renderClothingList(data=clothingData){
 
     div.querySelector('.delete-btn').addEventListener('click', ()=>{
       if(confirm(`${item.name} を削除してもよろしいですか？`)){
-        clothingData = clothingData.filter(i => i !== item);
+        clothingData = clothingData.filter(i => i.id !== item.id);
         localStorage.setItem('clothingData', JSON.stringify(clothingData));
         renderClothingList();
       }
@@ -103,29 +105,33 @@ function renderClothingList(data=clothingData){
 }
 
 // --- フィルター ---
-document.getElementById('apply-filter-btn').addEventListener('click', ()=>{
+document.getElementById('list-filter-apply').addEventListener('click', ()=>{
   const cat=document.getElementById('filter-category').value;
   const color=document.getElementById('filter-color').value.toLowerCase();
   const brand=document.getElementById('filter-brand').value.toLowerCase();
   const selectedSeasons = Array.from(document.querySelectorAll('input[name="filter-season"]:checked')).map(i=>i.value);
-  
+  const favOnly = document.getElementById('filter-fav').checked;
+
   const filtered = clothingData.filter(item=>
     (!cat || item.category===cat) &&
     (!color || item.color.toLowerCase().includes(color)) &&
     (!brand || item.brand.toLowerCase().includes(brand)) &&
-    (selectedSeasons.length===0 || item.seasons.some(s=>selectedSeasons.includes(s)))
+    (selectedSeasons.length===0 || item.seasons.some(s=>selectedSeasons.includes(s))) &&
+    (!favOnly || item.favorite)
   );
   renderClothingList(filtered);
 });
-document.getElementById('clear-filter-btn').addEventListener('click', ()=>{
+
+document.getElementById('list-filter-clear').addEventListener('click', ()=>{
   document.getElementById('filter-category').value='';
   document.getElementById('filter-color').value='';
   document.getElementById('filter-brand').value='';
+  document.getElementById('filter-fav').checked = false;
   document.querySelectorAll('input[name="filter-season"]').forEach(c=>c.checked=false);
   renderClothingList();
 });
 
-// --- コーデ作成カード生成（お気に入り対応） ---
+// --- コーデ作成カード ---
 function updateCoordItems(filteredData) {
   const container = document.getElementById('coord-items');
   container.innerHTML = '';
@@ -134,13 +140,11 @@ function updateCoordItems(filteredData) {
     const wrapper = document.createElement('label');
     wrapper.className = 'coord-card';
 
-    // チェックボックス
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.value = item.name;
+    checkbox.value = item.name;   // ← ID を保存に使用！
     checkbox.className = 'coord-checkbox';
 
-    // 画像
     const imgBox = document.createElement('div');
     imgBox.className = 'coord-img-box';
     const img = document.createElement('img');
@@ -148,17 +152,14 @@ function updateCoordItems(filteredData) {
     img.alt = item.name;
     imgBox.appendChild(img);
 
-    // 名称
     const name = document.createElement('p');
     name.className = 'coord-name';
     name.textContent = item.name;
 
-    // ブランド
     const brand = document.createElement('p');
     brand.className = 'coord-brand';
     brand.textContent = item.brand;
 
-    // お気に入りボタン
     const favBtn = document.createElement('button');
     favBtn.type = 'button';
     favBtn.className = 'coord-fav-btn';
@@ -180,11 +181,11 @@ function updateCoordItems(filteredData) {
   });
 }
 
-// --- フィルター機能 ---
+// --- コーデフィルター ---
 document.getElementById('coord-filter-apply').addEventListener('click', () => {
   const cat = document.getElementById('coord-filter-category').value;
   const color = document.getElementById('coord-filter-color').value.toLowerCase();
-  const brand = document.getElementById('coord-filter-brand').value.toLowerCase(); // 追加
+  const brand = document.getElementById('coord-filter-brand').value.toLowerCase();
   const selectedSeasons = Array.from(document.querySelectorAll('input[name="coord-filter-season"]:checked'))
                               .map(c => c.value);
   const favOnly = document.getElementById('coord-filter-fav').checked;
@@ -192,7 +193,7 @@ document.getElementById('coord-filter-apply').addEventListener('click', () => {
   const filtered = clothingData.filter(item => 
     (!cat || item.category === cat) &&
     (!color || item.color.toLowerCase().includes(color)) &&
-    (!brand || item.brand.toLowerCase().includes(brand)) && // 追加
+    (!brand || item.brand.toLowerCase().includes(brand)) &&
     (selectedSeasons.length === 0 || item.seasons.some(s => selectedSeasons.includes(s))) &&
     (!favOnly || item.favorite)
   );
@@ -203,7 +204,7 @@ document.getElementById('coord-filter-apply').addEventListener('click', () => {
 document.getElementById('coord-filter-clear').addEventListener('click', () => {
   document.getElementById('coord-filter-category').value = '';
   document.getElementById('coord-filter-color').value = '';
-  document.getElementById('coord-filter-brand').value = ''; // 追加
+  document.getElementById('coord-filter-brand').value = '';
   document.querySelectorAll('input[name="coord-filter-season"]').forEach(c => c.checked = false);
   document.getElementById('coord-filter-fav').checked = false;
   updateCoordItems();
@@ -212,29 +213,20 @@ document.getElementById('coord-filter-clear').addEventListener('click', () => {
 // --- コーデ保存 ---
 document.getElementById('coord-form').addEventListener('submit', e => {
   e.preventDefault();
-  const selectedItems = Array.from(document.querySelectorAll('#coord-items input[type="checkbox"]:checked'))
-                             .map(cb => cb.value);
-
-  if(selectedItems.length === 0){
-    alert('少なくとも1つアイテムを選んでください');
-    return;
-  }
+  const selectedItems = Array.from(document.querySelectorAll('#coord-items input[type="checkbox"]:checked')).map(cb=>cb.value);
+  if(selectedItems.length===0){ alert('少なくとも1つアイテムを選んでください'); return; }
 
   const newCoord = {
     name: document.getElementById('coord-name').value,
     date: document.getElementById('coord-date').value,
     items: selectedItems
   };
-
   coordData.push(newCoord);
   localStorage.setItem('coordData', JSON.stringify(coordData));
   alert('コーデを保存しました');
-
   e.target.reset();
   updateCoordItems();
 });
-
-
 
 // --- カレンダー ---
 function updateCalendar(){
@@ -244,7 +236,6 @@ function updateCalendar(){
   const firstDay = new Date(currentYear,currentMonth,1).getDay();
   const lastDate = new Date(currentYear,currentMonth+1,0).getDate();
 
-  // ←ここを修正
   document.getElementById('calendar-title').innerHTML = `${currentYear}<br>${currentMonth+1}月`;
 
   for(let i=0;i<firstDay;i++) grid.innerHTML+='<div></div>';
